@@ -16,13 +16,18 @@
         
         /* Статистика */
         .stats { font-size: 14px; color: #888; margin-bottom: 15px; font-weight: bold; }
-        .stats-highlight { color: #4ade80; } /* Выделение для уникальных */
+        .stats-highlight { color: #4ade80; }
 
-        /* Карточка игры */
+        /* Карточка игры (Flexbox) */
         .game-card { display: flex; align-items: flex-start; gap: 15px; background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; }
-        .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 35px; margin-top: -2px; }
-        .game-content { flex: 1; min-width: 0; }
         
+        .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 30px; margin-top: -2px; }
+        
+        /* Блок капсулы */
+        .game-cover { flex-shrink: 0; }
+        .game-cover img { width: 120px; height: 56px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); object-fit: cover; background: #2c2c2c; }
+        
+        .game-content { flex: 1; min-width: 0; }
         .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
         
         /* Теги метаданных */
@@ -35,9 +40,12 @@
         .badge-status { background: #374151; color: #d1d5db; }
         .badge-series { background: #4c1d95; color: #c4b5fd; }
 
-        @media (max-width: 400px) {
+        @media (max-width: 500px) {
             .meta-grid { grid-template-columns: 1fr; }
             .filters-row { grid-template-columns: 1fr; }
+            .game-cover img { width: 90px; height: 42px; }
+            .game-card { padding: 10px; gap: 10px; }
+            .game-number { font-size: 14px; min-width: 20px; }
         }
     </style>
 </head>
@@ -80,13 +88,20 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Функция для очистки названия игры от мусора для поиска дубликатов
         function getNormalizedName(name) {
             if (!name) return "";
-            return name.toLowerCase()
-                .replace(/\([^)]*\)/g, '') // Удаляем текст в круглых скобках
-                .replace(/\[[^\]]*\]/g, '') // Удаляем текст в квадратных скобках
-                .replace(/[^a-zа-я0-9]/gi, ''); // Удаляем пробелы и спецсимволы
+            return name.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/[^a-zа-я0-9]/gi, '');
+        }
+
+        // Генерация ссылки на обложку
+        function getCoverUrl(game) {
+            if (game.SteamId) {
+                // Если есть Steam ID, тянем горизонтальную капсулу с серверов Steam
+                return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.SteamId}/capsule_231x87.jpg`;
+            }
+            // Если ID нет, генерируем красивую заглушку-плейсхолдер
+            const shortName = encodeURIComponent(game.Name.substring(0, 20));
+            return `https://placehold.co/231x87/2c2c2c/888888?text=${shortName}`;
         }
 
         fetch('games.json?v=' + new Date().getTime())
@@ -121,7 +136,6 @@
             const filterInstall = document.getElementById('filterInstall').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
-            // 1. Фильтруем
             let filteredGames = games.filter(g => {
                 const matchSearch = g.Name.toLowerCase().includes(query);
                 const matchInstall = filterInstall === 'all' || 
@@ -131,7 +145,6 @@
                 return matchSearch && matchInstall && matchStatus;
             });
             
-            // 2. Сортируем
             filteredGames.sort((a, b) => {
                 if (sortMethod === 'name_asc') return a.Name.localeCompare(b.Name);
                 if (sortMethod === 'name_desc') return b.Name.localeCompare(a.Name);
@@ -142,16 +155,13 @@
                 return 0;
             });
 
-            // 3. Считаем уникальные игры
             const uniqueFiltered = new Set(filteredGames.map(g => getNormalizedName(g.Name))).size;
             const uniqueTotal = new Set(games.map(g => getNormalizedName(g.Name))).size;
 
-            // 4. Обновляем статистику
             document.getElementById('stats').innerHTML = 
                 `Найдено: ${filteredGames.length} <span class="stats-highlight">(уникальных: ${uniqueFiltered})</span> ` + 
                 `из ${games.length} <span class="stats-highlight">(всего уникальных: ${uniqueTotal})</span>`;
 
-            // 5. Отрисовываем
             renderGames(filteredGames);
         }
 
@@ -164,14 +174,21 @@
             const html = list.map((g, index) => `
                 <div class="game-card">
                     <div class="game-number">${index + 1}</div>
+                    
+                    <div class="game-cover">
+                        <!-- Загружаем капсулу лениво, и если сервер Steam недоступен или картинки нет, подменяем на плейсхолдер -->
+                        <img src="${getCoverUrl(g)}" alt="Cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/231x87/2c2c2c/888888?text=No+Cover';">
+                    </div>
+
                     <div class="game-content">
                         <div class="game-title">${g.Name}</div>
                         
                         <div class="meta-grid">
+                            <div class="meta-item">Библиотека: <span>${g.Source || 'Ручная установка'}</span></div>
+                            <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
                             <div class="meta-item">Разраб: <span>${g.Developer || '—'}</span></div>
                             <div class="meta-item">Издатель: <span>${g.Publisher || '—'}</span></div>
-                            <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
-                            <div class="meta-item">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
+                            <div class="meta-item" style="grid-column: span 2;">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
                         </div>
 
                         <div class="badges">
