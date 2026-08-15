@@ -38,7 +38,7 @@
         /* Теги метаданных */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #aaaaaa; }
         .meta-item span { color: #ffffff; font-weight: 500; }
-        .highlight-text { color: #facc15 !important; } /* Желтый цвет для времени в игре */
+        .highlight-text { color: #facc15 !important; }
         
         .badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
@@ -97,7 +97,6 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Перевод секунд из Playnite в часы и минуты
         function formatPlaytime(seconds) {
             if (!seconds || seconds === 0) return '<span style="color: #666;">Не играл</span>';
             const hours = Math.floor(seconds / 3600);
@@ -119,15 +118,13 @@
             return `https://placehold.co/120x180/2c2c2c/888888?text=${shortName}`;
         }
 
-        // Поиск подходящей ссылки на магазин
         function getStoreLink(game) {
             if (game.Links && game.Links.length > 0) {
                 const storeKeywords = ['steam', 'epic', 'gog', 'store', 'xbox', 'playstation', 'магазин'];
                 let bestLink = game.Links.find(l => storeKeywords.some(k => l.Url.toLowerCase().includes(k) || l.Name.toLowerCase().includes(k)));
                 if (bestLink) return bestLink.Url;
-                return game.Links[0].Url; // Если нет явного магазина, берем первую попавшуюся ссылку
+                return game.Links[0].Url;
             }
-            // Если ссылок нет вообще, делаем поиск в Google
             return `https://www.google.com/search?q=${encodeURIComponent(game.Name + ' game')}`;
         }
 
@@ -178,7 +175,7 @@
                 if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
                 if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
                 if (sortMethod === 'playtime_desc') return (b.Playtime || 0) - (a.Playtime || 0);
-                if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (a.IsInstalled === true ? 1 : 0);
+                if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (b.IsInstalled === true ? 1 : 0);
                 if (sortMethod === 'status_asc') return (a.CompletionStatus || '').localeCompare(b.CompletionStatus || '');
                 return 0;
             });
@@ -205,16 +202,16 @@
         function generateCardsHtml(list, isDemo) {
             return list.map((g, index) => {
                 
-                // Фильтрация нужных тегов для отображения
                 let engineTag = '—';
                 let hltbTag = '—';
                 
                 if (g.Tags && g.Tags.length > 0) {
-                    const engine = g.Tags.find(t => t.startsWith('[Движок]'));
-                    if (engine) engineTag = engine.replace('[Движок]', '').trim();
+                    // Ищем тег, содержащий "[Движок]" независимо от наличия эмодзи перед ним
+                    const engine = g.Tags.find(t => t.includes('[Движок]'));
+                    if (engine) engineTag = engine; // Оставляем целиком вместе с эмодзи
                     
-                    const hltb = g.Tags.find(t => t.startsWith('[HLTB]'));
-                    if (hltb) hltbTag = hltb.replace('[HLTB]', '').trim();
+                    const hltb = g.Tags.find(t => t.includes('[HLTB]'));
+                    if (hltb) hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
                 }
 
                 return `
