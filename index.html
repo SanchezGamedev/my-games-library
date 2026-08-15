@@ -16,8 +16,9 @@
         
         /* Статистика */
         .stats { font-size: 14px; color: #888; margin-bottom: 15px; font-weight: bold; }
+        .stats-highlight { color: #4ade80; } /* Выделение для уникальных */
 
-        /* Карточка игры (Flexbox для номера слева) */
+        /* Карточка игры */
         .game-card { display: flex; align-items: flex-start; gap: 15px; background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; }
         .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 35px; margin-top: -2px; }
         .game-content { flex: 1; min-width: 0; }
@@ -34,7 +35,6 @@
         .badge-status { background: #374151; color: #d1d5db; }
         .badge-series { background: #4c1d95; color: #c4b5fd; }
 
-        /* Адаптация под узкие экраны телефонов */
         @media (max-width: 400px) {
             .meta-grid { grid-template-columns: 1fr; }
             .filters-row { grid-template-columns: 1fr; }
@@ -62,7 +62,6 @@
             </select>
             <select id="filterStatus" class="sort-select">
                 <option value="all">Статус: Любой</option>
-                <!-- Сюда скрипт сам добавит твои статусы -->
             </select>
         </div>
     </div>
@@ -73,7 +72,6 @@
     <script>
         let games = [];
 
-        // Конвертер байтов в мегабайты/гигабайты
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return 'Неизвестно';
             const k = 1024;
@@ -82,7 +80,15 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Загружаем наш файл с библиотекой
+        // Функция для очистки названия игры от мусора для поиска дубликатов
+        function getNormalizedName(name) {
+            if (!name) return "";
+            return name.toLowerCase()
+                .replace(/\([^)]*\)/g, '') // Удаляем текст в круглых скобках
+                .replace(/\[[^\]]*\]/g, '') // Удаляем текст в квадратных скобках
+                .replace(/[^a-zа-я0-9]/gi, ''); // Удаляем пробелы и спецсимволы
+        }
+
         fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
@@ -92,7 +98,6 @@
             })
             .catch(err => document.getElementById('results').innerHTML = 'Ошибка загрузки данных');
 
-        // Автоматически собираем все уникальные статусы прохождения из твоей библиотеки
         function populateStatusFilter(list) {
             const statusSelect = document.getElementById('filterStatus');
             const uniqueStatuses = [...new Set(list.map(g => g.CompletionStatus).filter(s => s))].sort();
@@ -105,13 +110,11 @@
             });
         }
 
-        // Слушатели событий на все элементы управления
         document.getElementById('searchInput').addEventListener('input', updateView);
         document.getElementById('sortSelect').addEventListener('change', updateView);
         document.getElementById('filterInstall').addEventListener('change', updateView);
         document.getElementById('filterStatus').addEventListener('change', updateView);
 
-        // Главная функция фильтрации, сортировки и обновления экрана
         function updateView() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortMethod = document.getElementById('sortSelect').value;
@@ -120,17 +123,11 @@
 
             // 1. Фильтруем
             let filteredGames = games.filter(g => {
-                // Поиск по имени
                 const matchSearch = g.Name.toLowerCase().includes(query);
-                
-                // Фильтр по установке
                 const matchInstall = filterInstall === 'all' || 
                                      (filterInstall === 'installed' && g.IsInstalled) || 
                                      (filterInstall === 'not_installed' && !g.IsInstalled);
-                
-                // Фильтр по статусу
                 const matchStatus = filterStatus === 'all' || g.CompletionStatus === filterStatus;
-
                 return matchSearch && matchInstall && matchStatus;
             });
             
@@ -145,14 +142,19 @@
                 return 0;
             });
 
-            // 3. Обновляем статистику
-            document.getElementById('stats').innerText = `Найдено игр: ${filteredGames.length} из ${games.length}`;
+            // 3. Считаем уникальные игры
+            const uniqueFiltered = new Set(filteredGames.map(g => getNormalizedName(g.Name))).size;
+            const uniqueTotal = new Set(games.map(g => getNormalizedName(g.Name))).size;
 
-            // 4. Отрисовываем
+            // 4. Обновляем статистику
+            document.getElementById('stats').innerHTML = 
+                `Найдено: ${filteredGames.length} <span class="stats-highlight">(уникальных: ${uniqueFiltered})</span> ` + 
+                `из ${games.length} <span class="stats-highlight">(всего уникальных: ${uniqueTotal})</span>`;
+
+            // 5. Отрисовываем
             renderGames(filteredGames);
         }
 
-        // Функция отрисовки HTML
         function renderGames(list) {
             if (list.length === 0) {
                 document.getElementById('results').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Ничего не найдено</div>';
