@@ -45,7 +45,7 @@
                 return;
             }
             // Показываем первые 100 результатов, чтобы не тормозить отрисовку при пустом поиске
-            const html = list.slice(0, 100).map(g => `
+            const html = list.map(g => `
                 <div class="game-card">
                     <div class="game-title">${g.Name}</div>
                     <div class="game-platform">${g.Platform || 'PC'} ${g.IsInstalled ? '✅' : ''}</div>
