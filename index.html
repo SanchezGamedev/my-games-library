@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Игры</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #ffffff; padding: 20px; margin: 0; }
+        .search-container { position: sticky; top: 0; background: #121212; padding: 10px 0 20px 0; }
+        input { width: 100%; padding: 15px; font-size: 18px; border-radius: 10px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
+        .game-card { background: #1e1e1e; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #0078D7; }
+        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .game-platform { font-size: 14px; color: #aaaaaa; }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Найти игру...">
+    </div>
+    <div id="results">Загрузка библиотеки...</div>
+
+    <script>
+        let games = [];
+        
+        // Загружаем наш файл с библиотекой
+        fetch('games.json')
+            .then(response => response.json())
+            .then(data => {
+                games = data;
+                renderGames(games);
+            })
+            .catch(err => document.getElementById('results').innerHTML = 'Ошибка загрузки данных');
+
+        // Моментальный поиск
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = games.filter(g => g.Name.toLowerCase().includes(query));
+            renderGames(filtered);
+        });
+
+        // Отрисовка списка
+        function renderGames(list) {
+            if (list.length === 0) {
+                document.getElementById('results').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Ничего не найдено</div>';
+                return;
+            }
+            // Показываем первые 100 результатов, чтобы не тормозить отрисовку при пустом поиске
+            const html = list.slice(0, 100).map(g => `
+                <div class="game-card">
+                    <div class="game-title">${g.Name}</div>
+                    <div class="game-platform">${g.Platform || 'PC'} ${g.IsInstalled ? '✅' : ''}</div>
+                </div>
+            `).join('');
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
