@@ -175,7 +175,7 @@
                 if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
                 if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
                 if (sortMethod === 'playtime_desc') return (b.Playtime || 0) - (a.Playtime || 0);
-                if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (b.IsInstalled === true ? 1 : 0);
+                if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (a.IsInstalled === true ? 1 : 0);
                 if (sortMethod === 'status_asc') return (a.CompletionStatus || '').localeCompare(b.CompletionStatus || '');
                 return 0;
             });
@@ -206,12 +206,16 @@
                 let hltbTag = '—';
                 
                 if (g.Tags && g.Tags.length > 0) {
-                    // Ищем тег, содержащий "[Движок]" независимо от наличия эмодзи перед ним
+                    // Ищем тег с движком и очищаем всё до закрывающейся скобки ']' включительно + пробел
                     const engine = g.Tags.find(t => t.includes('[Движок]'));
-                    if (engine) engineTag = engine; // Оставляем целиком вместе с эмодзи
+                    if (engine) {
+                        engineTag = engine.replace(/.*\[Движок\]\s*/, '').trim();
+                    }
                     
                     const hltb = g.Tags.find(t => t.includes('[HLTB]'));
-                    if (hltb) hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
+                    if (hltb) {
+                        hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
+                    }
                 }
 
                 return `
