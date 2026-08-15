@@ -23,12 +23,19 @@
         
         .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 30px; margin-top: -2px; }
         
-        /* Блок капсулы */
+        /* Блок вертикальной капсулы */
         .game-cover { flex-shrink: 0; }
-        .game-cover img { width: 120px; height: 56px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); object-fit: cover; background: #2c2c2c; }
+        .game-cover img { 
+            width: 80px; /* Уменьшенный размер для ПК */
+            height: 120px; 
+            border-radius: 6px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+            object-fit: cover; 
+            background: #2c2c2c; 
+        }
         
         .game-content { flex: 1; min-width: 0; }
-        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; line-height: 1.2; }
         
         /* Теги метаданных */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #aaaaaa; }
@@ -40,12 +47,15 @@
         .badge-status { background: #374151; color: #d1d5db; }
         .badge-series { background: #4c1d95; color: #c4b5fd; }
 
+        /* Адаптация под телефоны */
         @media (max-width: 500px) {
             .meta-grid { grid-template-columns: 1fr; }
             .filters-row { grid-template-columns: 1fr; }
-            .game-cover img { width: 90px; height: 42px; }
+            /* Уменьшаем вертикальную обложку еще сильнее для мобилок */
+            .game-cover img { width: 60px; height: 90px; }
             .game-card { padding: 10px; gap: 10px; }
             .game-number { font-size: 14px; min-width: 20px; }
+            .game-title { font-size: 16px; margin-bottom: 5px; }
         }
     </style>
 </head>
@@ -93,15 +103,15 @@
             return name.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/[^a-zа-я0-9]/gi, '');
         }
 
-        // Генерация ссылки на обложку
+        // Обновленная функция для ВЕРТИКАЛЬНЫХ обложек
         function getCoverUrl(game) {
             if (game.SteamId) {
-                // Если есть Steam ID, тянем горизонтальную капсулу с серверов Steam
-                return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.SteamId}/capsule_231x87.jpg`;
+                // Сервер Steam с вертикальными постерами (600x900)
+                return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.SteamId}/library_600x900.jpg`;
             }
-            // Если ID нет, генерируем красивую заглушку-плейсхолдер
-            const shortName = encodeURIComponent(game.Name.substring(0, 20));
-            return `https://placehold.co/231x87/2c2c2c/888888?text=${shortName}`;
+            // Вертикальный плейсхолдер для игр без Steam ID
+            const shortName = encodeURIComponent(game.Name.substring(0, 15));
+            return `https://placehold.co/120x180/2c2c2c/888888?text=${shortName}`;
         }
 
         fetch('games.json?v=' + new Date().getTime())
@@ -176,8 +186,8 @@
                     <div class="game-number">${index + 1}</div>
                     
                     <div class="game-cover">
-                        <!-- Загружаем капсулу лениво, и если сервер Steam недоступен или картинки нет, подменяем на плейсхолдер -->
-                        <img src="${getCoverUrl(g)}" alt="Cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/231x87/2c2c2c/888888?text=No+Cover';">
+                        <!-- Загружаем вертикальную капсулу лениво -->
+                        <img src="${getCoverUrl(g)}" alt="Cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/120x180/2c2c2c/888888?text=No+Cover';">
                     </div>
 
                     <div class="game-content">
