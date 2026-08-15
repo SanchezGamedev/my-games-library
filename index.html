@@ -23,7 +23,7 @@
         let games = [];
         
         // Загружаем наш файл с библиотекой
-        fetch('games.json')
+        fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 games = data;
