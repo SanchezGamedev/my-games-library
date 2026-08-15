@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои Игры</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #ffffff; padding: 20px; margin: 0; }
+        /* Ограничили максимальную ширину и выровняли по центру (margin: 0 auto) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #ffffff; padding: 20px; margin: 0 auto; max-width: 960px; }
         
         /* Панель управления */
         .controls-container { position: sticky; top: 0; background: #121212; padding: 10px 0 15px 0; z-index: 10; border-bottom: 1px solid #333; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -18,16 +19,16 @@
         .stats { font-size: 14px; color: #888; margin-bottom: 15px; font-weight: bold; }
         .stats-highlight { color: #4ade80; }
 
-        /* Карточка игры (Flexbox) */
+        /* Карточка игры */
         .game-card { display: flex; align-items: flex-start; gap: 15px; background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; }
         
         .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 30px; margin-top: -2px; }
         
-        /* Блок вертикальной капсулы */
+        /* Блок вертикальной капсулы (немного увеличили для ПК) */
         .game-cover { flex-shrink: 0; }
         .game-cover img { 
-            width: 80px; /* Уменьшенный размер для ПК */
-            height: 120px; 
+            width: 90px; 
+            height: 135px; 
             border-radius: 6px; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
             object-fit: cover; 
@@ -51,9 +52,9 @@
         @media (max-width: 500px) {
             .meta-grid { grid-template-columns: 1fr; }
             .filters-row { grid-template-columns: 1fr; }
-            /* Уменьшаем вертикальную обложку еще сильнее для мобилок */
-            .game-cover img { width: 60px; height: 90px; }
-            .game-card { padding: 10px; gap: 10px; }
+            /* Увеличили картинки для мобильных устройств (было 60х90) */
+            .game-cover img { width: 76px; height: 114px; }
+            .game-card { padding: 12px; gap: 12px; }
             .game-number { font-size: 14px; min-width: 20px; }
             .game-title { font-size: 16px; margin-bottom: 5px; }
         }
@@ -103,13 +104,10 @@
             return name.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/[^a-zа-я0-9]/gi, '');
         }
 
-        // Обновленная функция для ВЕРТИКАЛЬНЫХ обложек
         function getCoverUrl(game) {
             if (game.SteamId) {
-                // Сервер Steam с вертикальными постерами (600x900)
                 return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.SteamId}/library_600x900.jpg`;
             }
-            // Вертикальный плейсхолдер для игр без Steam ID
             const shortName = encodeURIComponent(game.Name.substring(0, 15));
             return `https://placehold.co/120x180/2c2c2c/888888?text=${shortName}`;
         }
@@ -186,7 +184,6 @@
                     <div class="game-number">${index + 1}</div>
                     
                     <div class="game-cover">
-                        <!-- Загружаем вертикальную капсулу лениво -->
                         <img src="${getCoverUrl(g)}" alt="Cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/120x180/2c2c2c/888888?text=No+Cover';">
                     </div>
 
