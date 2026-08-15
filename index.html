@@ -7,18 +7,22 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #ffffff; padding: 20px; margin: 0; }
         
-        /* Панель управления (поиск + сортировка) */
+        /* Панель управления */
         .controls-container { position: sticky; top: 0; background: #121212; padding: 10px 0 15px 0; z-index: 10; border-bottom: 1px solid #333; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
         .search-input { width: 100%; padding: 15px; font-size: 16px; border-radius: 10px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
+        
+        .filters-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .sort-select { width: 100%; padding: 10px; font-size: 14px; border-radius: 8px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
         
         /* Статистика */
         .stats { font-size: 14px; color: #888; margin-bottom: 15px; font-weight: bold; }
 
-        /* Карточка игры */
-        .game-card { background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; position: relative; }
-        .game-number { position: absolute; top: 15px; right: 15px; font-size: 12px; color: #555; font-weight: bold; }
-        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; padding-right: 30px; }
+        /* Карточка игры (Flexbox для номера слева) */
+        .game-card { display: flex; align-items: flex-start; gap: 15px; background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; }
+        .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 35px; margin-top: -2px; }
+        .game-content { flex: 1; min-width: 0; }
+        
+        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
         
         /* Теги метаданных */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #aaaaaa; }
@@ -29,17 +33,38 @@
         .badge-installed { background: #1a472a; color: #4ade80; }
         .badge-status { background: #374151; color: #d1d5db; }
         .badge-series { background: #4c1d95; color: #c4b5fd; }
+
+        /* Адаптация под узкие экраны телефонов */
+        @media (max-width: 400px) {
+            .meta-grid { grid-template-columns: 1fr; }
+            .filters-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="controls-container">
         <input type="text" id="searchInput" class="search-input" placeholder="Найти игру...">
+        
         <select id="sortSelect" class="sort-select">
             <option value="name_asc">Сортировка: По алфавиту (А-Я)</option>
             <option value="name_desc">Сортировка: По алфавиту (Я-А)</option>
             <option value="size_desc">Сортировка: Сначала большие по размеру</option>
             <option value="size_asc">Сортировка: Сначала маленькие по размеру</option>
+            <option value="install_desc">Сортировка: Сначала установленные</option>
+            <option value="status_asc">Сортировка: По статусу прохождения</option>
         </select>
+
+        <div class="filters-row">
+            <select id="filterInstall" class="sort-select">
+                <option value="all">Показать: Все</option>
+                <option value="installed">Только установленные</option>
+                <option value="not_installed">Не установленные</option>
+            </select>
+            <select id="filterStatus" class="sort-select">
+                <option value="all">Статус: Любой</option>
+                <!-- Сюда скрипт сам добавит твои статусы -->
+            </select>
+        </div>
     </div>
     
     <div class="stats" id="stats">Загрузка...</div>
@@ -47,7 +72,6 @@
 
     <script>
         let games = [];
-        let currentSearchQuery = "";
 
         // Конвертер байтов в мегабайты/гигабайты
         function formatBytes(bytes) {
@@ -63,32 +87,61 @@
             .then(response => response.json())
             .then(data => {
                 games = data;
+                populateStatusFilter(games);
                 updateView();
             })
             .catch(err => document.getElementById('results').innerHTML = 'Ошибка загрузки данных');
 
-        // Слушатели событий
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            currentSearchQuery = e.target.value.toLowerCase().trim();
-            updateView();
-        });
+        // Автоматически собираем все уникальные статусы прохождения из твоей библиотеки
+        function populateStatusFilter(list) {
+            const statusSelect = document.getElementById('filterStatus');
+            const uniqueStatuses = [...new Set(list.map(g => g.CompletionStatus).filter(s => s))].sort();
+            
+            uniqueStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = `Статус: ${status}`;
+                statusSelect.appendChild(option);
+            });
+        }
 
-        document.getElementById('sortSelect').addEventListener('change', () => {
-            updateView();
-        });
+        // Слушатели событий на все элементы управления
+        document.getElementById('searchInput').addEventListener('input', updateView);
+        document.getElementById('sortSelect').addEventListener('change', updateView);
+        document.getElementById('filterInstall').addEventListener('change', updateView);
+        document.getElementById('filterStatus').addEventListener('change', updateView);
 
-        // Главная функция обновления экрана
+        // Главная функция фильтрации, сортировки и обновления экрана
         function updateView() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const sortMethod = document.getElementById('sortSelect').value;
+            const filterInstall = document.getElementById('filterInstall').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+
             // 1. Фильтруем
-            let filteredGames = games.filter(g => g.Name.toLowerCase().includes(currentSearchQuery));
+            let filteredGames = games.filter(g => {
+                // Поиск по имени
+                const matchSearch = g.Name.toLowerCase().includes(query);
+                
+                // Фильтр по установке
+                const matchInstall = filterInstall === 'all' || 
+                                     (filterInstall === 'installed' && g.IsInstalled) || 
+                                     (filterInstall === 'not_installed' && !g.IsInstalled);
+                
+                // Фильтр по статусу
+                const matchStatus = filterStatus === 'all' || g.CompletionStatus === filterStatus;
+
+                return matchSearch && matchInstall && matchStatus;
+            });
             
             // 2. Сортируем
-            const sortMethod = document.getElementById('sortSelect').value;
             filteredGames.sort((a, b) => {
                 if (sortMethod === 'name_asc') return a.Name.localeCompare(b.Name);
                 if (sortMethod === 'name_desc') return b.Name.localeCompare(a.Name);
                 if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
                 if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
+                if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (a.IsInstalled === true ? 1 : 0);
+                if (sortMethod === 'status_asc') return (a.CompletionStatus || '').localeCompare(b.CompletionStatus || '');
                 return 0;
             });
 
@@ -108,20 +161,22 @@
             
             const html = list.map((g, index) => `
                 <div class="game-card">
-                    <div class="game-number">#${index + 1}</div>
-                    <div class="game-title">${g.Name}</div>
-                    
-                    <div class="meta-grid">
-                        <div class="meta-item">Разраб: <span>${g.Developer || '—'}</span></div>
-                        <div class="meta-item">Издатель: <span>${g.Publisher || '—'}</span></div>
-                        <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
-                        <div class="meta-item">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
-                    </div>
+                    <div class="game-number">${index + 1}</div>
+                    <div class="game-content">
+                        <div class="game-title">${g.Name}</div>
+                        
+                        <div class="meta-grid">
+                            <div class="meta-item">Разраб: <span>${g.Developer || '—'}</span></div>
+                            <div class="meta-item">Издатель: <span>${g.Publisher || '—'}</span></div>
+                            <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
+                            <div class="meta-item">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
+                        </div>
 
-                    <div class="badges">
-                        ${g.IsInstalled ? '<span class="badge badge-installed">Установлена</span>' : ''}
-                        ${g.CompletionStatus ? `<span class="badge badge-status">${g.CompletionStatus}</span>` : ''}
-                        ${g.Series ? `<span class="badge badge-series">${g.Series}</span>` : ''}
+                        <div class="badges">
+                            ${g.IsInstalled ? '<span class="badge badge-installed">Установлена</span>' : ''}
+                            ${g.CompletionStatus ? `<span class="badge badge-status">${g.CompletionStatus}</span>` : ''}
+                            ${g.Series ? `<span class="badge badge-series">${g.Series}</span>` : ''}
+                        </div>
                     </div>
                 </div>
             `).join('');
