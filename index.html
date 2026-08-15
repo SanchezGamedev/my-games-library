@@ -23,13 +23,14 @@
 
         /* Карточка игры */
         .game-card { display: flex; align-items: flex-start; gap: 15px; background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; }
-        .game-card.demo-card { border-left-color: #f59e0b; } /* Демки выделяем желтой полоской */
+        .game-card.demo-card { border-left-color: #f59e0b; }
         
         .game-number { font-size: 18px; font-weight: bold; color: #555; min-width: 30px; margin-top: -2px; }
         
-        /* Блок обложки */
-        .game-cover { flex-shrink: 0; }
-        .game-cover img { width: 90px; height: 135px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); object-fit: cover; background: #2c2c2c; }
+        /* Кликабельная обложка с анимацией */
+        .game-cover { flex-shrink: 0; display: block; text-decoration: none; transition: transform 0.2s ease; }
+        .game-cover:hover { transform: scale(1.05); }
+        .game-cover img { width: 90px; height: 135px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); object-fit: cover; background: #2c2c2c; display: block; }
         
         .game-content { flex: 1; min-width: 0; }
         .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; line-height: 1.2; }
@@ -37,6 +38,7 @@
         /* Теги метаданных */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #aaaaaa; }
         .meta-item span { color: #ffffff; font-weight: 500; }
+        .highlight-text { color: #facc15 !important; } /* Желтый цвет для времени в игре */
         
         .badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
@@ -62,6 +64,7 @@
         <select id="sortSelect" class="sort-select">
             <option value="name_asc">Сортировка: По алфавиту (А-Я)</option>
             <option value="name_desc">Сортировка: По алфавиту (Я-А)</option>
+            <option value="playtime_desc">Сортировка: По времени в игре (Сначала больше)</option>
             <option value="size_desc">Сортировка: Сначала большие по размеру</option>
             <option value="size_asc">Сортировка: Сначала маленькие по размеру</option>
             <option value="install_desc">Сортировка: Сначала установленные</option>
@@ -94,6 +97,15 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
+        // Перевод секунд из Playnite в часы и минуты
+        function formatPlaytime(seconds) {
+            if (!seconds || seconds === 0) return '<span style="color: #666;">Не играл</span>';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            if (hours > 0) return `${hours} ч. ${minutes} мин.`;
+            return `${minutes} мин.`;
+        }
+
         function getNormalizedName(name) {
             if (!name) return "";
             return name.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/[^a-zа-я0-9]/gi, '');
@@ -105,6 +117,18 @@
             }
             const shortName = encodeURIComponent(game.Name.substring(0, 15));
             return `https://placehold.co/120x180/2c2c2c/888888?text=${shortName}`;
+        }
+
+        // Поиск подходящей ссылки на магазин
+        function getStoreLink(game) {
+            if (game.Links && game.Links.length > 0) {
+                const storeKeywords = ['steam', 'epic', 'gog', 'store', 'xbox', 'playstation', 'магазин'];
+                let bestLink = game.Links.find(l => storeKeywords.some(k => l.Url.toLowerCase().includes(k) || l.Name.toLowerCase().includes(k)));
+                if (bestLink) return bestLink.Url;
+                return game.Links[0].Url; // Если нет явного магазина, берем первую попавшуюся ссылку
+            }
+            // Если ссылок нет вообще, делаем поиск в Google
+            return `https://www.google.com/search?q=${encodeURIComponent(game.Name + ' game')}`;
         }
 
         fetch('games.json?v=' + new Date().getTime())
@@ -139,7 +163,6 @@
             const filterInstall = document.getElementById('filterInstall').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
-            // 1. Общая фильтрация
             let filteredGames = games.filter(g => {
                 const matchSearch = g.Name.toLowerCase().includes(query);
                 const matchInstall = filterInstall === 'all' || 
@@ -149,33 +172,26 @@
                 return matchSearch && matchInstall && matchStatus;
             });
             
-            // 2. Сортировка
             filteredGames.sort((a, b) => {
                 if (sortMethod === 'name_asc') return a.Name.localeCompare(b.Name);
                 if (sortMethod === 'name_desc') return b.Name.localeCompare(a.Name);
                 if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
                 if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
+                if (sortMethod === 'playtime_desc') return (b.Playtime || 0) - (a.Playtime || 0);
                 if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (a.IsInstalled === true ? 1 : 0);
                 if (sortMethod === 'status_asc') return (a.CompletionStatus || '').localeCompare(b.CompletionStatus || '');
                 return 0;
             });
 
-            // 3. Разделение на Игры и Демки
             let fullGames = [];
             let demoGames = [];
-            
-            // Регулярное выражение: ищет отдельное слово Demo (или демо)
             const demoRegex = /\b(demo|демо)\b/i;
 
             filteredGames.forEach(g => {
-                if (demoRegex.test(g.Name)) {
-                    demoGames.push(g);
-                } else {
-                    fullGames.push(g);
-                }
+                if (demoRegex.test(g.Name)) demoGames.push(g);
+                else fullGames.push(g);
             });
 
-            // 4. Обновление статистики (считаем по всему списку)
             const uniqueFiltered = new Set(filteredGames.map(g => getNormalizedName(g.Name))).size;
             const uniqueTotal = new Set(games.map(g => getNormalizedName(g.Name))).size;
 
@@ -183,29 +199,42 @@
                 `Найдено: ${filteredGames.length} <span class="stats-highlight">(уникальных: ${uniqueFiltered})</span> ` + 
                 `из ${games.length} <span class="stats-highlight">(всего уникальных: ${uniqueTotal})</span>`;
 
-            // 5. Отрисовка
             renderSplitGames(fullGames, demoGames);
         }
 
-        // Функция для генерации HTML списка карточек
         function generateCardsHtml(list, isDemo) {
-            return list.map((g, index) => `
+            return list.map((g, index) => {
+                
+                // Фильтрация нужных тегов для отображения
+                let engineTag = '—';
+                let hltbTag = '—';
+                
+                if (g.Tags && g.Tags.length > 0) {
+                    const engine = g.Tags.find(t => t.startsWith('[Движок]'));
+                    if (engine) engineTag = engine.replace('[Движок]', '').trim();
+                    
+                    const hltb = g.Tags.find(t => t.startsWith('[HLTB]'));
+                    if (hltb) hltbTag = hltb.replace('[HLTB]', '').trim();
+                }
+
+                return `
                 <div class="game-card ${isDemo ? 'demo-card' : ''}">
                     <div class="game-number">${index + 1}</div>
                     
-                    <div class="game-cover">
+                    <a href="${getStoreLink(g)}" target="_blank" class="game-cover" title="Открыть страницу игры">
                         <img src="${getCoverUrl(g)}" alt="Cover" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/120x180/2c2c2c/888888?text=No+Cover';">
-                    </div>
+                    </a>
 
                     <div class="game-content">
                         <div class="game-title">${g.Name}</div>
                         
                         <div class="meta-grid">
                             <div class="meta-item">Библиотека: <span>${g.Source || 'Ручная установка'}</span></div>
-                            <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
+                            <div class="meta-item">Время: <span class="${g.Playtime > 0 ? 'highlight-text' : ''}">${formatPlaytime(g.Playtime)}</span></div>
                             <div class="meta-item">Разраб: <span>${g.Developer || '—'}</span></div>
-                            <div class="meta-item">Издатель: <span>${g.Publisher || '—'}</span></div>
-                            <div class="meta-item" style="grid-column: span 2;">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
+                            <div class="meta-item">Движок: <span>${engineTag}</span></div>
+                            <div class="meta-item">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
+                            ${hltbTag !== '—' ? `<div class="meta-item">HLTB: <span>${hltbTag}</span></div>` : ''}
                         </div>
 
                         <div class="badges">
@@ -216,28 +245,19 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
-        // Функция отрисовки двух блоков
         function renderSplitGames(fullGames, demoGames) {
             let html = '';
 
-            // Блок: Полноценные игры
             html += `<div class="section-title">Полноценные игры (${fullGames.length})</div>`;
-            if (fullGames.length === 0) {
-                html += '<div class="empty-state">В этом разделе ничего не найдено</div>';
-            } else {
-                html += generateCardsHtml(fullGames, false);
-            }
+            if (fullGames.length === 0) html += '<div class="empty-state">В этом разделе ничего не найдено</div>';
+            else html += generateCardsHtml(fullGames, false);
 
-            // Блок: Демоверсии
             html += `<div class="section-title">Демоверсии (${demoGames.length})</div>`;
-            if (demoGames.length === 0) {
-                html += '<div class="empty-state">В этом разделе ничего не найдено</div>';
-            } else {
-                html += generateCardsHtml(demoGames, true);
-            }
+            if (demoGames.length === 0) html += '<div class="empty-state">В этом разделе ничего не найдено</div>';
+            else html += generateCardsHtml(demoGames, true);
             
             document.getElementById('results').innerHTML = html;
         }
