@@ -6,51 +6,126 @@
     <title>Мои Игры</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #ffffff; padding: 20px; margin: 0; }
-        .search-container { position: sticky; top: 0; background: #121212; padding: 10px 0 20px 0; }
-        input { width: 100%; padding: 15px; font-size: 18px; border-radius: 10px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
-        .game-card { background: #1e1e1e; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #0078D7; }
-        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .game-platform { font-size: 14px; color: #aaaaaa; }
+        
+        /* Панель управления (поиск + сортировка) */
+        .controls-container { position: sticky; top: 0; background: #121212; padding: 10px 0 15px 0; z-index: 10; border-bottom: 1px solid #333; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .search-input { width: 100%; padding: 15px; font-size: 16px; border-radius: 10px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
+        .sort-select { width: 100%; padding: 10px; font-size: 14px; border-radius: 8px; border: none; outline: none; background: #2c2c2c; color: #fff; box-sizing: border-box; }
+        
+        /* Статистика */
+        .stats { font-size: 14px; color: #888; margin-bottom: 15px; font-weight: bold; }
+
+        /* Карточка игры */
+        .game-card { background: #1e1e1e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #0078D7; position: relative; }
+        .game-number { position: absolute; top: 15px; right: 15px; font-size: 12px; color: #555; font-weight: bold; }
+        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; padding-right: 30px; }
+        
+        /* Теги метаданных */
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #aaaaaa; }
+        .meta-item span { color: #ffffff; font-weight: 500; }
+        
+        .badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-installed { background: #1a472a; color: #4ade80; }
+        .badge-status { background: #374151; color: #d1d5db; }
+        .badge-series { background: #4c1d95; color: #c4b5fd; }
     </style>
 </head>
 <body>
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Найти игру...">
+    <div class="controls-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Найти игру...">
+        <select id="sortSelect" class="sort-select">
+            <option value="name_asc">Сортировка: По алфавиту (А-Я)</option>
+            <option value="name_desc">Сортировка: По алфавиту (Я-А)</option>
+            <option value="size_desc">Сортировка: Сначала большие по размеру</option>
+            <option value="size_asc">Сортировка: Сначала маленькие по размеру</option>
+        </select>
     </div>
+    
+    <div class="stats" id="stats">Загрузка...</div>
     <div id="results">Загрузка библиотеки...</div>
 
     <script>
         let games = [];
-        
+        let currentSearchQuery = "";
+
+        // Конвертер байтов в мегабайты/гигабайты
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return 'Неизвестно';
+            const k = 1024;
+            const sizes = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
         // Загружаем наш файл с библиотекой
         fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 games = data;
-                renderGames(games);
+                updateView();
             })
             .catch(err => document.getElementById('results').innerHTML = 'Ошибка загрузки данных');
 
-        // Моментальный поиск
+        // Слушатели событий
         document.getElementById('searchInput').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            const filtered = games.filter(g => g.Name.toLowerCase().includes(query));
-            renderGames(filtered);
+            currentSearchQuery = e.target.value.toLowerCase().trim();
+            updateView();
         });
 
-        // Отрисовка списка
+        document.getElementById('sortSelect').addEventListener('change', () => {
+            updateView();
+        });
+
+        // Главная функция обновления экрана
+        function updateView() {
+            // 1. Фильтруем
+            let filteredGames = games.filter(g => g.Name.toLowerCase().includes(currentSearchQuery));
+            
+            // 2. Сортируем
+            const sortMethod = document.getElementById('sortSelect').value;
+            filteredGames.sort((a, b) => {
+                if (sortMethod === 'name_asc') return a.Name.localeCompare(b.Name);
+                if (sortMethod === 'name_desc') return b.Name.localeCompare(a.Name);
+                if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
+                if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
+                return 0;
+            });
+
+            // 3. Обновляем статистику
+            document.getElementById('stats').innerText = `Найдено игр: ${filteredGames.length} из ${games.length}`;
+
+            // 4. Отрисовываем
+            renderGames(filteredGames);
+        }
+
+        // Функция отрисовки HTML
         function renderGames(list) {
             if (list.length === 0) {
                 document.getElementById('results').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Ничего не найдено</div>';
                 return;
             }
-            // Показываем первые 100 результатов, чтобы не тормозить отрисовку при пустом поиске
-            const html = list.map(g => `
+            
+            const html = list.map((g, index) => `
                 <div class="game-card">
+                    <div class="game-number">#${index + 1}</div>
                     <div class="game-title">${g.Name}</div>
-                    <div class="game-platform">${g.Platform || 'PC'} ${g.IsInstalled ? '✅' : ''}</div>
+                    
+                    <div class="meta-grid">
+                        <div class="meta-item">Разраб: <span>${g.Developer || '—'}</span></div>
+                        <div class="meta-item">Издатель: <span>${g.Publisher || '—'}</span></div>
+                        <div class="meta-item">Платформа: <span>${g.Platform || 'PC'}</span></div>
+                        <div class="meta-item">Размер: <span>${formatBytes(g.InstallSize)}</span></div>
+                    </div>
+
+                    <div class="badges">
+                        ${g.IsInstalled ? '<span class="badge badge-installed">Установлена</span>' : ''}
+                        ${g.CompletionStatus ? `<span class="badge badge-status">${g.CompletionStatus}</span>` : ''}
+                        ${g.Series ? `<span class="badge badge-series">${g.Series}</span>` : ''}
+                    </div>
                 </div>
             `).join('');
+            
             document.getElementById('results').innerHTML = html;
         }
     </script>
