@@ -90,6 +90,17 @@
         .view-btn.active { fill: var(--accent-main); background: rgba(255, 70, 85, 0.1); }
         .view-btn svg { width: 22px; height: 22px; }
 
+        /* Контейнер фильтров (Сворачиваемый) */
+        .filters-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        .filters-panel.collapsed {
+            display: none;
+        }
+
         /* Кастомные Селекты */
         .filters-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         
@@ -119,7 +130,6 @@
 
         /* Мульти-селект Тегов */
         .tag-filter-container {
-            grid-column: 1 / -1; 
             display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
             background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); 
             border-radius: 8px; padding: 6px 12px; min-height: 48px; position: relative;
@@ -149,6 +159,10 @@
             display: flex; align-items: center; gap: 10px;
         }
         .section-title::before { content: ''; display: block; width: 6px; height: 24px; background: var(--accent-main); border-radius: 4px; }
+        
+        /* Специфика заголовка для демоверсий */
+        .section-title.demo-title::before { background: var(--accent-demo); }
+
         .empty-state { text-align: center; color: var(--text-muted); padding: 50px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px dashed var(--border-hover); font-weight: 500; }
 
         /* Контейнеры и Карточки */
@@ -218,26 +232,35 @@
         }
         
         @media (max-width: 600px) {
-            /* Исправленный Список на телефонах (Компактный) */
+            /* Уменьшаем и фиксируем заголовки в одну строку */
+            .section-title { 
+                font-size: 16px; 
+                margin: 30px 0 15px 0; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                letter-spacing: 0px; 
+            }
+            .section-title span { font-size: 14px; }
+            .section-title::before { height: 18px; width: 4px; }
+
+            /* Список на телефонах */
             .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; align-items: stretch; }
             .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
             .view-list .game-cover { width: 100px; flex-shrink: 0; }
             .view-list .game-cover img { height: 100%; min-height: 140px; object-fit: cover; }
             .view-list .game-content { padding: 12px; justify-content: flex-start; min-width: 0; }
             .view-list .game-title { font-size: 15px; margin-bottom: 10px; line-height: 1.2; white-space: normal; }
-            /* Упаковываем элементы списка в 2 колонки */
             .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px 4px; margin-bottom: 12px; }
             .view-list .meta-label { font-size: 9px; }
             .view-list .meta-value { font-size: 11px; }
             .view-list .badges { gap: 4px; }
             .view-list .badge { padding: 4px 6px; font-size: 9px; }
             
-            /* Исправленная Сетка на телефонах (Компактная в 2 колонки) */
+            /* Сетка на телефонах */
             .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
             .view-grid .game-card { border-bottom: 3px solid var(--accent-main); }
             .view-grid .game-content { padding: 10px; }
             .view-grid .game-title { font-size: 14px; margin-bottom: 8px; line-height: 1.2; }
-            /* Упаковываем элементы сетки в 2 колонки */
             .view-grid .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px 4px; margin-bottom: 10px; }
             .view-grid .meta-label { font-size: 8px; }
             .view-grid .meta-value { font-size: 10px; }
@@ -259,6 +282,9 @@
                 <span class="clear-btn" id="searchClear">✖</span>
             </div>
             <div class="view-toggles">
+                <button class="view-btn active" id="btnFilter" onclick="toggleFilters()" title="Показать/скрыть фильтры">
+                    <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+                </button>
                 <button class="view-btn active" id="btnGrid" onclick="setView('view-grid')" title="Вид: Сетка">
                     <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
                 </button>
@@ -268,38 +294,40 @@
             </div>
         </div>
         
-        <div class="filters-row">
-            <div class="custom-select" id="cs-sort" data-value="name_asc">
-                <div class="cs-selected">Сортировка: А-Я</div>
-                <div class="cs-options">
-                    <div class="cs-option selected" data-value="name_asc">Сортировка: А-Я</div>
-                    <div class="cs-option" data-value="name_desc">Сортировка: Я-А</div>
-                    <div class="cs-option" data-value="playtime_desc">Больше времени в игре</div>
-                    <div class="cs-option" data-value="playtime_asc">Меньше времени в игре</div>
-                    <div class="cs-option" data-value="size_desc">Самые тяжелые</div>
-                    <div class="cs-option" data-value="size_asc">Самые легкие</div>
-                    <div class="cs-option" data-value="install_desc">Сначала установленные</div>
-                    <div class="cs-option" data-value="status_asc">По статусу прохождения</div>
+        <div id="filtersPanel" class="filters-panel">
+            <div class="filters-row">
+                <div class="custom-select" id="cs-sort" data-value="name_asc">
+                    <div class="cs-selected">Сортировка: А-Я</div>
+                    <div class="cs-options">
+                        <div class="cs-option selected" data-value="name_asc">Сортировка: А-Я</div>
+                        <div class="cs-option" data-value="name_desc">Сортировка: Я-А</div>
+                        <div class="cs-option" data-value="playtime_desc">Больше времени в игре</div>
+                        <div class="cs-option" data-value="playtime_asc">Меньше времени в игре</div>
+                        <div class="cs-option" data-value="size_desc">Самые тяжелые</div>
+                        <div class="cs-option" data-value="size_asc">Самые легкие</div>
+                        <div class="cs-option" data-value="install_desc">Сначала установленные</div>
+                        <div class="cs-option" data-value="status_asc">По статусу прохождения</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="custom-select" id="cs-install" data-value="all">
-                <div class="cs-selected">Установка: Все</div>
-                <div class="cs-options">
-                    <div class="cs-option selected" data-value="all">Установка: Все</div>
-                    <div class="cs-option" data-value="installed">Только установленные</div>
-                    <div class="cs-option" data-value="not_installed">Не установленные</div>
+                <div class="custom-select" id="cs-install" data-value="all">
+                    <div class="cs-selected">Установка: Все</div>
+                    <div class="cs-options">
+                        <div class="cs-option selected" data-value="all">Установка: Все</div>
+                        <div class="cs-option" data-value="installed">Только установленные</div>
+                        <div class="cs-option" data-value="not_installed">Не установленные</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="custom-select" id="cs-status" data-value="all">
-                <div class="cs-selected">Статус: Любой</div>
-                <div class="cs-options"></div>
-            </div>
+                <div class="custom-select" id="cs-status" data-value="all">
+                    <div class="cs-selected">Статус: Любой</div>
+                    <div class="cs-options"></div>
+                </div>
 
-            <div class="custom-select" id="cs-engine" data-value="all">
-                <div class="cs-selected">Движок: Любой</div>
-                <div class="cs-options"></div>
+                <div class="custom-select" id="cs-engine" data-value="all">
+                    <div class="cs-selected">Движок: Любой</div>
+                    <div class="cs-options"></div>
+                </div>
             </div>
             
             <div class="tag-filter-container" id="tag-filter-container">
@@ -320,10 +348,24 @@
         let games = [];
         let availableTags = [];
         let selectedTags = [];
+        
+        // Инициализация вида (Сетка/Список)
         let currentView = localStorage.getItem('libraryView') || 'view-grid';
-
         document.getElementById('btnGrid').classList.toggle('active', currentView === 'view-grid');
         document.getElementById('btnList').classList.toggle('active', currentView === 'view-list');
+
+        // Инициализация панели фильтров (Сворачивание на мобильных по умолчанию)
+        const filtersPanel = document.getElementById('filtersPanel');
+        const btnFilter = document.getElementById('btnFilter');
+        if (window.innerWidth <= 600) {
+            filtersPanel.classList.add('collapsed');
+            btnFilter.classList.remove('active');
+        }
+
+        function toggleFilters() {
+            filtersPanel.classList.toggle('collapsed');
+            btnFilter.classList.toggle('active');
+        }
 
         function setView(viewType) {
             currentView = viewType;
@@ -378,7 +420,6 @@
             })
             .catch(err => document.getElementById('results').innerHTML = '<div class="empty-state">Не удалось загрузить games.json. Проверьте экспорт.</div>');
 
-        /* Инициализация кастомных селектов */
         function populateDynamicFilters(list) {
             const uniqueStatuses = new Set();
             const uniqueEngines = new Set();
@@ -408,7 +449,6 @@
             });
         }
 
-        // Логика кликов для классических Custom Select
         document.addEventListener('click', (e) => {
             const isClickInsideSelect = e.target.closest('.custom-select');
             const isClickInsideTag = e.target.closest('#tag-filter-container');
@@ -433,7 +473,6 @@
             }
         });
 
-        /* Логика полей ввода и кнопки "Стереть" */
         function setupInputWithClear(inputId, clearId, onChangeCallback) {
             const input = document.getElementById(inputId);
             const clearBtn = document.getElementById(clearId);
@@ -452,7 +491,6 @@
 
         setupInputWithClear('searchInput', 'searchClear', () => updateView());
 
-        /* Умный фильтр Тегов (Multi-select) */
         const tagInput = document.getElementById('tagInput');
         const tagOptionsDiv = document.getElementById('tag-options');
         const tagClearBtn = document.getElementById('tagClear');
@@ -503,7 +541,6 @@
         tagInput.addEventListener('focus', () => renderTagDropdown(tagInput.value));
         setupInputWithClear('tagInput', 'tagClear', (val) => renderTagDropdown(val));
 
-        /* Основная логика обновления и рендера */
         function updateView() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortMethod = document.getElementById('cs-sort').dataset.value;
@@ -560,14 +597,12 @@
                     if (hltb) hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
                 }
 
-                // Логика картинок: vSrc (Вертикальная для Списка), hSrc (Горизонтальная для Сетки)
                 const fbV = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(g.Name + ' pc game cover')}&w=300&h=450&c=7&rs=1&p=0`;
                 const fbH = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(g.Name + ' pc game header')}&w=460&h=215&c=7&rs=1&p=0`;
                 
                 const vSrc = g.SteamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.SteamId}/library_600x900.jpg` : fbV;
                 const hSrc = g.SteamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.SteamId}/header.jpg` : fbH;
                 
-                // Обработка ошибок (onerror)
                 const vErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbV.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/300x450/15161c/444444?text=NO+IMAGE'; }`;
                 const hErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbH.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/460x215/15161c/444444?text=NO+IMAGE'; }`;
 
@@ -606,8 +641,10 @@
             let html = '';
             const createSection = (title, gamesList, isDemo) => {
                 if (gamesList.length === 0) return '';
+                // Добавляем класс demo-title для демоверсий
+                const titleClass = isDemo ? 'demo-title' : '';
                 return `
-                    <div class="section-title">${title} <span>[${gamesList.length}]</span></div>
+                    <div class="section-title ${titleClass}">${title} <span>[${gamesList.length}]</span></div>
                     <div class="games-container ${currentView}">${generateCardsHtml(gamesList, isDemo)}</div>
                 `;
             };
