@@ -204,7 +204,13 @@
         .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
         .view-list .game-cover { width: 160px; flex-shrink: 0; }
         .view-list .game-cover img { width: 100%; height: 100%; object-fit: cover; }
-        .view-list .game-content { overflow: hidden; justify-content: space-between; }
+        
+        /* ИЗМЕНЕНО: Приподнятый контент для списка ПК */
+        .view-list .game-content { 
+            padding: 10px 20px 24px 20px; 
+            overflow: hidden; 
+            justify-content: space-between; 
+        }
         
         /* Специфика Сетки (Десктоп) */
         .view-grid .game-card { display: flex; flex-direction: column; border-bottom: 4px solid var(--accent-main); }
@@ -221,11 +227,19 @@
         .meta-value { color: var(--text-title); font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .highlight-time { color: #00ff9d !important; text-shadow: 0 0 8px rgba(0, 255, 157, 0.3); }
         
-        /* Бейджи */
+        /* Бейджи и Иконка Установки (Дискета) */
         .badges { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; }
         .badge { padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
-        .badge-installed { background: linear-gradient(135deg, #00b09b, #96c93d); color: #000; }
+        .badge-icon { 
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 4px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: 0.2s; flex-shrink: 0;
+        }
+        .badge-icon svg { width: 14px; height: 14px; }
+        .installed-yes { background: linear-gradient(135deg, #00b09b, #96c93d); fill: #000; border: none; }
+        .installed-no { background: rgba(0,0,0,0.2); fill: #838996; border: 1px solid #4a4d5a; box-shadow: none; }
+
         .badge-status { background: #2a2d3a; color: #fff; border: 1px solid #4a4d5a; }
         .badge-series { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
         .badge-demo { background: linear-gradient(135deg, #00c6ff, #0072ff); color: #fff; }
@@ -275,6 +289,9 @@
             .view-list .badges { gap: 4px; margin-top: auto; }
             .view-list .badge { padding: 3px 5px; font-size: 7px; }
             
+            .view-list .badge-icon { width: 22px; height: 22px; }
+            .view-list .badge-icon svg { width: 11px; height: 11px; }
+            
             /* Сетка на телефонах */
             .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
             .view-grid .game-card { border-bottom: 3px solid var(--accent-main); }
@@ -285,6 +302,9 @@
             .view-grid .meta-value { font-size: 10px; }
             .view-grid .badges { gap: 4px; }
             .view-grid .badge { padding: 4px 6px; font-size: 8px; }
+            
+            .view-grid .badge-icon { width: 22px; height: 22px; }
+            .view-grid .badge-icon svg { width: 11px; height: 11px; }
             
             /* Фильтры */
             .filters-row { grid-template-columns: 1fr; }
@@ -625,6 +645,13 @@
                 const vErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbV.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/300x450/15161c/444444?text=NO+IMAGE'; }`;
                 const hErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbH.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/460x215/15161c/444444?text=NO+IMAGE'; }`;
 
+                // Генерация иконки Установки (Дискета)
+                const installIcon = `
+                    <div class="badge-icon ${g.IsInstalled ? 'installed-yes' : 'installed-no'}" title="${g.IsInstalled ? 'Установлена' : 'Не установлена'}">
+                        <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                    </div>
+                `;
+
                 return `
                 <div class="game-card ${isDemo ? 'demo-card' : ''}">
                     <a href="${getStoreLink(g)}" target="_blank" class="game-cover" title="Открыть в магазине">
@@ -646,7 +673,7 @@
                         </div>
 
                         <div class="badges">
-                            ${g.IsInstalled ? '<span class="badge badge-installed">Установлена</span>' : ''}
+                            ${installIcon}
                             ${g.CompletionStatus ? `<span class="badge badge-status">${g.CompletionStatus}</span>` : ''}
                             ${g.Series ? `<span class="badge badge-series" title="${g.Series}">${g.Series}</span>` : ''}
                             ${isDemo ? '<span class="badge badge-demo">Demo</span>' : ''}
