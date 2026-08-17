@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My games</title>
+    <title>Sanchez's Game Lib</title>
     <style>
         :root {
             --bg-base: #050505;
@@ -243,18 +243,20 @@
             .section-title span { font-size: 14px; }
             .section-title::before { height: 18px; width: 4px; }
 
-            /* Список на телефонах */
-            .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; align-items: stretch; }
+            /* Список на телефонах (Компактный и без обрезки капсул) */
+            .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; align-items: flex-start; }
             .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
-            .view-list .game-cover { width: 100px; flex-shrink: 0; }
-            .view-list .game-cover img { height: 100%; min-height: 140px; object-fit: cover; }
-            .view-list .game-content { padding: 12px; justify-content: flex-start; min-width: 0; }
-            .view-list .game-title { font-size: 15px; margin-bottom: 10px; line-height: 1.2; white-space: normal; }
-            .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px 4px; margin-bottom: 12px; }
-            .view-list .meta-label { font-size: 9px; }
-            .view-list .meta-value { font-size: 11px; }
+            .view-list .game-cover { width: 90px; flex-shrink: 0; }
+            /* Задаем строгую пропорцию 2:3 без stretch */
+            .view-list .game-cover img { height: auto; min-height: unset; aspect-ratio: 2/3; object-fit: cover; }
+            
+            .view-list .game-content { padding: 10px 12px; justify-content: flex-start; min-width: 0; }
+            .view-list .game-title { font-size: 14px; margin-bottom: 8px; line-height: 1.2; white-space: normal; }
+            .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px 4px; margin-bottom: 10px; }
+            .view-list .meta-label { font-size: 8px; }
+            .view-list .meta-value { font-size: 10px; }
             .view-list .badges { gap: 4px; }
-            .view-list .badge { padding: 4px 6px; font-size: 9px; }
+            .view-list .badge { padding: 4px 6px; font-size: 8px; }
             
             /* Сетка на телефонах */
             .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
