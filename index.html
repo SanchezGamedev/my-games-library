@@ -166,33 +166,31 @@
         }
         .game-card.demo-card:hover { border-color: var(--accent-demo); box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px var(--accent-demo-glow); }
 
-        /* Обложки: Общая логика */
+        /* Обложки */
         .game-cover { display: block; overflow: hidden; background: #000; text-decoration: none; position: relative; }
         .game-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%); opacity: 0; transition: opacity 0.3s; }
         .game-card:hover .game-cover::after { opacity: 1; }
         .game-card:hover .game-cover img { transform: scale(1.06); }
 
-        /* Разделение картинок (Вертикальная vs Горизонтальная) */
         .img-grid, .img-list { display: none; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-        
         .view-grid .img-grid { display: block; }
         .view-list .img-list { display: block; }
 
         .game-content { padding: 20px; display: flex; flex-direction: column; flex: 1; }
         .game-title { font-size: 19px; font-weight: 800; margin-bottom: 16px; line-height: 1.3; color: var(--text-title); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        /* Специфика Списка (List) */
+        /* Специфика Списка (Десктоп) */
         .view-list .game-card { display: flex; flex-direction: row; align-items: stretch; border-left: 5px solid var(--accent-main); border-radius: 10px; }
         .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
         .view-list .game-cover { width: 160px; flex-shrink: 0; }
         .view-list .game-cover img { min-height: 220px; }
         
-        /* Специфика Сетки (Grid) */
+        /* Специфика Сетки (Десктоп) */
         .view-grid .game-card { display: flex; flex-direction: column; border-bottom: 4px solid var(--accent-main); }
         .view-grid .game-card.demo-card { border-bottom-color: var(--accent-demo); }
         .view-grid .game-cover { width: 100%; aspect-ratio: 16/9; }
 
-        /* Детальная сетка параметров (7 пунктов) */
+        /* Детальная сетка параметров (Десктоп) */
         .meta-grid { display: grid; gap: 12px; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
         .view-list .meta-grid { grid-template-columns: repeat(3, 1fr); }
         .view-grid .meta-grid { grid-template-columns: 1fr 1fr; }
@@ -220,27 +218,33 @@
         }
         
         @media (max-width: 600px) {
-            /* Чиним Список на телефонах (оставляем его списком!) */
-            .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; }
-            .view-list .game-card.demo-card { border-left-color: var(--accent-demo); border-bottom: none; }
-            .view-list .game-cover { width: 110px; flex-shrink: 0; align-self: stretch; }
-            .view-list .game-cover img { height: 100%; min-height: 140px; }
-            .view-list .game-content { padding: 12px; justify-content: flex-start; }
-            .view-list .game-title { font-size: 15px; margin-bottom: 10px; }
-            .view-list .meta-grid { grid-template-columns: 1fr !important; gap: 8px; }
+            /* Исправленный Список на телефонах (Компактный) */
+            .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; align-items: stretch; }
+            .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
+            .view-list .game-cover { width: 100px; flex-shrink: 0; }
+            .view-list .game-cover img { height: 100%; min-height: 140px; object-fit: cover; }
+            .view-list .game-content { padding: 12px; justify-content: flex-start; min-width: 0; }
+            .view-list .game-title { font-size: 15px; margin-bottom: 10px; line-height: 1.2; white-space: normal; }
+            /* Упаковываем элементы списка в 2 колонки */
+            .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px 4px; margin-bottom: 12px; }
+            .view-list .meta-label { font-size: 9px; }
+            .view-list .meta-value { font-size: 11px; }
             .view-list .badges { gap: 4px; }
+            .view-list .badge { padding: 4px 6px; font-size: 9px; }
             
-            /* Чиним Сетку на телефонах (две колонки, компактно) */
-            .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            /* Исправленная Сетка на телефонах (Компактная в 2 колонки) */
+            .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
             .view-grid .game-card { border-bottom: 3px solid var(--accent-main); }
-            .view-grid .game-content { padding: 12px; }
-            .view-grid .game-title { font-size: 13px; margin-bottom: 8px; white-space: normal; }
-            .view-grid .meta-grid { grid-template-columns: 1fr !important; gap: 6px; margin-bottom: 12px; }
-            .view-grid .meta-label { font-size: 9px; }
-            .view-grid .meta-value { font-size: 11px; }
-            .view-grid .badge { padding: 4px 6px; font-size: 9px; }
+            .view-grid .game-content { padding: 10px; }
+            .view-grid .game-title { font-size: 14px; margin-bottom: 8px; line-height: 1.2; }
+            /* Упаковываем элементы сетки в 2 колонки */
+            .view-grid .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px 4px; margin-bottom: 10px; }
+            .view-grid .meta-label { font-size: 8px; }
+            .view-grid .meta-value { font-size: 10px; }
+            .view-grid .badges { gap: 4px; }
+            .view-grid .badge { padding: 4px 6px; font-size: 8px; }
             
-            /* Общие фиксы для фильтров */
+            /* Фильтры */
             .filters-row { grid-template-columns: 1fr; }
             .tag-filter-container { flex-direction: column; align-items: stretch; }
             .tag-filter-container .input-wrapper { width: 100%; }
@@ -301,7 +305,7 @@
             <div class="tag-filter-container" id="tag-filter-container">
                 <div id="ms-chips" class="ms-chips"></div>
                 <div class="input-wrapper">
-                    <input type="text" id="tagInput" class="tag-input" placeholder="Поиск и добавление тегов...">
+                    <input type="text" id="tagInput" class="tag-input" placeholder="Фильтр по тегам...">
                     <span class="clear-btn" id="tagClear">✖</span>
                 </div>
                 <div class="cs-options" id="tag-options"></div>
@@ -368,7 +372,6 @@
         fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
-                // Исключаем элементы с тегом Software из общего массива
                 games = data.filter(g => !g.Tags || !g.Tags.some(t => t.toLowerCase() === 'software'));
                 populateDynamicFilters(games);
                 updateView();
