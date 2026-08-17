@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мои Игры</title>
+    <title>Sanchez's Game Lib</title>
     <style>
         :root {
             --bg-base: #050505;
@@ -194,12 +194,12 @@
         .game-title { font-size: 19px; font-weight: 800; margin-bottom: 16px; line-height: 1.3; color: var(--text-title); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
         /* =========================================
-           Специфика Списка (Десктоп) - Фиксированная пропорция 2:3
+           Специфика Списка (Десктоп)
            ========================================= */
         .view-list .game-card { 
             display: flex; flex-direction: row; align-items: stretch; 
             border-left: 5px solid var(--accent-main); border-radius: 10px; 
-            height: 240px; /* Идеальная пропорция 240 к 160 */
+            height: 240px; 
         }
         .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
         .view-list .game-cover { width: 160px; flex-shrink: 0; }
@@ -239,30 +239,35 @@
         }
         
         @media (max-width: 600px) {
+            /* Скрываем Разработчика везде на мобилках */
+            .meta-dev { display: none !important; }
+
             /* Уменьшаем и фиксируем заголовки в одну строку */
             .section-title { font-size: 16px; margin: 30px 0 15px 0; white-space: nowrap; overflow: hidden; letter-spacing: 0px; }
             .section-title span { font-size: 14px; }
             .section-title::before { height: 18px; width: 4px; }
 
             /* =========================================
-               Список на телефонах (Компактный, строго 2:3 пропорции без обрезки)
+               Список на телефонах
                ========================================= */
             .view-list .game-card { 
                 flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; 
-                align-items: stretch; height: 150px; /* Фиксированная высота 150 под ширину 100 */
+                align-items: stretch; height: 150px; 
             }
             .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
             .view-list .game-cover { width: 100px; flex-shrink: 0; }
             .view-list .game-cover img { width: 100%; height: 100%; object-fit: cover; }
             
-            .view-list .game-content { padding: 10px 12px; justify-content: space-between; min-width: 0; overflow: hidden; }
-            /* Название игры чуть больше, в две строки с многоточием */
+            .view-list .game-content { padding: 10px 12px; justify-content: flex-start; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+            
+            /* Жесткая фиксация заголовка, чтобы не исчезал (flex-shrink: 0) */
             .view-list .game-title { 
-                font-size: 16px; margin-bottom: 2px; line-height: 1.15; white-space: normal; 
+                font-size: 15px; margin-bottom: 4px; line-height: 1.15; white-space: normal; 
                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; 
+                flex-shrink: 0; 
             }
-            /* Максимально ужимаем характеристики */
-            .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 4px; margin-bottom: 4px; }
+            
+            .view-list .meta-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 4px; margin-bottom: 4px; flex-shrink: 0; }
             .view-list .meta-item { gap: 0px; }
             .view-list .meta-label { font-size: 7px; }
             .view-list .meta-value { font-size: 9px; }
@@ -635,7 +640,7 @@
                             <div class="meta-item"><span class="meta-label">Размер</span><span class="meta-value">${formatBytes(g.InstallSize)}</span></div>
                             <div class="meta-item"><span class="meta-label">Движок</span><span class="meta-value" title="${engineTag}">${engineTag}</span></div>
                             <div class="meta-item"><span class="meta-label">Библиотека</span><span class="meta-value" title="${g.Source || 'Ручная установка'}">${g.Source || 'Ручная установка'}</span></div>
-                            <div class="meta-item"><span class="meta-label">Разработчик</span><span class="meta-value" title="${g.Developer || '—'}">${g.Developer || '—'}</span></div>
+                            <div class="meta-item meta-dev"><span class="meta-label">Разработчик</span><span class="meta-value" title="${g.Developer || '—'}">${g.Developer || '—'}</span></div>
                             <div class="meta-item"><span class="meta-label">Издатель</span><span class="meta-value" title="${g.Publisher || '—'}">${g.Publisher || '—'}</span></div>
                             <div class="meta-item"><span class="meta-label">HLTB</span><span class="meta-value" title="${hltbTag}">${hltbTag}</span></div>
                         </div>
@@ -655,7 +660,6 @@
             let html = '';
             const createSection = (title, gamesList, isDemo) => {
                 if (gamesList.length === 0) return '';
-                // Добавляем класс demo-title для демоверсий
                 const titleClass = isDemo ? 'demo-title' : '';
                 return `
                     <div class="section-title ${titleClass}">${title} <span>[${gamesList.length}]</span></div>
