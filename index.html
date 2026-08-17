@@ -6,13 +6,12 @@
     <title>Мои Игры</title>
     <style>
         :root {
-            /* Палитра в стиле игровых порталов */
             --bg-base: #050505;
             --bg-surface: #101115;
             --bg-card: linear-gradient(145deg, #15161c 0%, #0d0e12 100%);
-            --accent-main: #ff4655; /* Агрессивный красно-оранжевый */
+            --accent-main: #ff4655;
             --accent-glow: rgba(255, 70, 85, 0.4);
-            --accent-demo: #00e5ff; /* Неоновый голубой для демо */
+            --accent-demo: #00e5ff;
             --accent-demo-glow: rgba(0, 229, 255, 0.4);
             
             --text-title: #ffffff;
@@ -39,7 +38,6 @@
             line-height: 1.5;
         }
         
-        /* Панель управления */
         .controls-container { 
             position: sticky; 
             top: 10px; 
@@ -85,16 +83,15 @@
         .view-btn.active { fill: var(--accent-main); background: rgba(255, 70, 85, 0.1); }
         .view-btn svg { width: 22px; height: 22px; }
 
-        .filters-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .filters-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
         .sort-select { 
-            width: 100%; padding: 12px 14px; font-size: 14px; font-weight: 500; border-radius: 8px; 
+            width: 100%; padding: 12px 14px; font-size: 13px; font-weight: 500; border-radius: 8px; 
             border: 1px solid var(--border-light); outline: none; background: rgba(0,0,0,0.3); 
             color: var(--text-main); cursor: pointer; transition: border-color 0.3s;
         }
         .sort-select:hover { border-color: var(--border-hover); }
         .sort-select:focus { border-color: var(--accent-main); }
         
-        /* Статистика и Заголовки */
         .stats { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .stats-highlight { color: var(--accent-main); }
         
@@ -109,7 +106,6 @@
         }
         .empty-state { text-align: center; color: var(--text-muted); padding: 50px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px dashed var(--border-hover); font-weight: 500; }
 
-        /* Контейнеры */
         .games-container { display: flex; gap: 24px; }
         .games-container.view-list { flex-direction: column; }
         .games-container.view-grid { 
@@ -117,7 +113,6 @@
             display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
         }
 
-        /* Универсальная карточка */
         .game-card { 
             background: var(--bg-card); 
             border-radius: 12px; 
@@ -137,7 +132,6 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px var(--accent-demo-glow); 
         }
 
-        /* Обложка */
         .game-cover { display: block; overflow: hidden; background: #000; text-decoration: none; position: relative; }
         .game-cover::after {
             content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%); opacity: 0; transition: opacity 0.3s;
@@ -146,23 +140,19 @@
         .game-cover img { width: 100%; display: block; object-fit: cover; transition: transform 0.5s ease; }
         .game-card:hover .game-cover img { transform: scale(1.06); }
 
-        /* Контент карточки */
         .game-content { padding: 20px; display: flex; flex-direction: column; flex: 1; }
         .game-title { font-size: 19px; font-weight: 800; margin-bottom: 16px; line-height: 1.3; color: var(--text-title); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        /* Специфика Списка (List) */
         .view-list .game-card { display: flex; flex-direction: row; align-items: stretch; border-left: 5px solid var(--accent-main); border-radius: 10px; }
         .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
         .view-list .game-cover { width: 160px; flex-shrink: 0; }
         .view-list .game-cover img { height: 100%; min-height: 220px; }
         
-        /* Специфика Сетки (Grid) */
         .view-grid .game-card { display: flex; flex-direction: column; border-bottom: 4px solid var(--accent-main); }
         .view-grid .game-card.demo-card { border-bottom-color: var(--accent-demo); }
         .view-grid .game-cover { width: 100%; aspect-ratio: 2/3; }
         .view-grid .game-cover img { height: 100%; }
 
-        /* Теги метаданных */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
         .view-grid .meta-grid { grid-template-columns: 1fr; gap: 8px; }
         
@@ -171,21 +161,23 @@
         .meta-value { color: var(--text-title); font-weight: 600; font-size: 13px; }
         .highlight-time { color: #00ff9d !important; text-shadow: 0 0 8px rgba(0, 255, 157, 0.3); }
         
-        /* Бейджи */
         .badges { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; }
         .badge { padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
-        /* Яркие цвета для бейджей */
         .badge-installed { background: linear-gradient(135deg, #00b09b, #96c93d); color: #000; }
         .badge-status { background: #2a2d3a; color: #fff; border: 1px solid #4a4d5a; }
         .badge-series { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
         .badge-demo { background: linear-gradient(135deg, #00c6ff, #0072ff); color: #fff; }
 
+        @media (max-width: 800px) {
+            .filters-row { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 600px) {
             .view-list .game-card { flex-direction: column; border-left: none; border-bottom: 4px solid var(--accent-main); }
             .view-list .game-cover { width: 100%; aspect-ratio: 16/9; }
             .view-list .game-cover img { min-height: auto; }
             .meta-grid { grid-template-columns: 1fr; }
+            .filters-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -207,7 +199,8 @@
             <select id="sortSelect" class="sort-select">
                 <option value="name_asc">А-Я</option>
                 <option value="name_desc">Я-А</option>
-                <option value="playtime_desc">Топ по времени в игре</option>
+                <option value="playtime_desc">Больше времени в игре</option>
+                <option value="playtime_asc">Меньше времени в игре</option>
                 <option value="size_desc">Самые тяжелые</option>
                 <option value="size_asc">Самые легкие</option>
                 <option value="install_desc">Сначала установленные</option>
@@ -220,6 +213,12 @@
             </select>
             <select id="filterStatus" class="sort-select">
                 <option value="all">Статус: Любой</option>
+            </select>
+            <select id="filterEngine" class="sort-select">
+                <option value="all">Движок: Любой</option>
+            </select>
+            <select id="filterTags" class="sort-select">
+                <option value="all">Тег: Любой</option>
             </select>
         </div>
     </div>
@@ -290,21 +289,59 @@
         fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
-                games = data;
-                populateStatusFilter(games);
+                // Исключаем элементы с тегом Software из общего массива
+                games = data.filter(g => {
+                    if (!g.Tags) return true;
+                    return !g.Tags.some(t => t.toLowerCase() === 'software');
+                });
+                
+                populateFilters(games);
                 updateView();
             })
             .catch(err => document.getElementById('results').innerHTML = '<div class="empty-state">Не удалось загрузить games.json. Проверьте экспорт.</div>');
 
-        function populateStatusFilter(list) {
+        function populateFilters(list) {
             const statusSelect = document.getElementById('filterStatus');
-            const uniqueStatuses = [...new Set(list.map(g => g.CompletionStatus).filter(s => s))].sort();
+            const engineSelect = document.getElementById('filterEngine');
+            const tagsSelect = document.getElementById('filterTags');
+
+            const uniqueStatuses = new Set();
+            const uniqueEngines = new Set();
+            const uniqueTags = new Set();
+
+            list.forEach(g => {
+                if (g.CompletionStatus) uniqueStatuses.add(g.CompletionStatus);
+                
+                if (g.Tags) {
+                    g.Tags.forEach(t => {
+                        if (t.includes('[Движок]')) {
+                            uniqueEngines.add(t.replace(/.*\[Движок\]\s*/, '').trim());
+                        } else if (!t.includes('[HLTB]')) { // Игнорируем технические теги времени
+                            uniqueTags.add(t);
+                        }
+                    });
+                }
+            });
             
-            uniqueStatuses.forEach(status => {
+            [...uniqueStatuses].sort().forEach(status => {
                 const option = document.createElement('option');
                 option.value = status;
                 option.textContent = `Статус: ${status}`;
                 statusSelect.appendChild(option);
+            });
+
+            [...uniqueEngines].sort().forEach(engine => {
+                const option = document.createElement('option');
+                option.value = engine;
+                option.textContent = `Движок: ${engine}`;
+                engineSelect.appendChild(option);
+            });
+
+            [...uniqueTags].sort().forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = `Тег: ${tag}`;
+                tagsSelect.appendChild(option);
             });
         }
 
@@ -312,12 +349,16 @@
         document.getElementById('sortSelect').addEventListener('change', updateView);
         document.getElementById('filterInstall').addEventListener('change', updateView);
         document.getElementById('filterStatus').addEventListener('change', updateView);
+        document.getElementById('filterEngine').addEventListener('change', updateView);
+        document.getElementById('filterTags').addEventListener('change', updateView);
 
         function updateView() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortMethod = document.getElementById('sortSelect').value;
             const filterInstall = document.getElementById('filterInstall').value;
             const filterStatus = document.getElementById('filterStatus').value;
+            const filterEngine = document.getElementById('filterEngine').value;
+            const filterTag = document.getElementById('filterTags').value;
 
             let filteredGames = games.filter(g => {
                 const matchSearch = g.Name.toLowerCase().includes(query);
@@ -325,7 +366,11 @@
                                      (filterInstall === 'installed' && g.IsInstalled) || 
                                      (filterInstall === 'not_installed' && !g.IsInstalled);
                 const matchStatus = filterStatus === 'all' || g.CompletionStatus === filterStatus;
-                return matchSearch && matchInstall && matchStatus;
+                
+                const matchEngine = filterEngine === 'all' || (g.Tags && g.Tags.some(t => t.includes('[Движок]') && t.replace(/.*\[Движок\]\s*/, '').trim() === filterEngine));
+                const matchTag = filterTag === 'all' || (g.Tags && g.Tags.includes(filterTag));
+
+                return matchSearch && matchInstall && matchStatus && matchEngine && matchTag;
             });
             
             filteredGames.sort((a, b) => {
@@ -334,6 +379,7 @@
                 if (sortMethod === 'size_desc') return (b.InstallSize || 0) - (a.InstallSize || 0);
                 if (sortMethod === 'size_asc') return (a.InstallSize || 0) - (b.InstallSize || 0);
                 if (sortMethod === 'playtime_desc') return (b.Playtime || 0) - (a.Playtime || 0);
+                if (sortMethod === 'playtime_asc') return (a.Playtime || 0) - (b.Playtime || 0);
                 if (sortMethod === 'install_desc') return (b.IsInstalled === true ? 1 : 0) - (a.IsInstalled === true ? 1 : 0);
                 if (sortMethod === 'status_asc') return (a.CompletionStatus || '').localeCompare(b.CompletionStatus || '');
                 return 0;
@@ -360,14 +406,10 @@
         function generateCardsHtml(list, isDemo) {
             return list.map(g => {
                 let engineTag = '—';
-                let hltbTag = '—';
                 
                 if (g.Tags && g.Tags.length > 0) {
                     const engine = g.Tags.find(t => t.includes('[Движок]'));
                     if (engine) engineTag = engine.replace(/.*\[Движок\]\s*/, '').trim();
-                    
-                    const hltb = g.Tags.find(t => t.includes('[HLTB]'));
-                    if (hltb) hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
                 }
 
                 return `
