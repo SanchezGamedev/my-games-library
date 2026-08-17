@@ -151,7 +151,7 @@
         .section-title::before { content: ''; display: block; width: 6px; height: 24px; background: var(--accent-main); border-radius: 4px; }
         .empty-state { text-align: center; color: var(--text-muted); padding: 50px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px dashed var(--border-hover); font-weight: 500; }
 
-        /* Карточки */
+        /* Контейнеры и Карточки */
         .games-container { display: flex; gap: 24px; }
         .games-container.view-list { flex-direction: column; }
         .games-container.view-grid { flex-direction: row; flex-wrap: wrap; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
@@ -166,24 +166,31 @@
         }
         .game-card.demo-card:hover { border-color: var(--accent-demo); box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px var(--accent-demo-glow); }
 
+        /* Обложки: Общая логика */
         .game-cover { display: block; overflow: hidden; background: #000; text-decoration: none; position: relative; }
         .game-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%); opacity: 0; transition: opacity 0.3s; }
         .game-card:hover .game-cover::after { opacity: 1; }
-        .game-cover img { width: 100%; display: block; object-fit: cover; transition: transform 0.5s ease; }
         .game-card:hover .game-cover img { transform: scale(1.06); }
+
+        /* Разделение картинок (Вертикальная vs Горизонтальная) */
+        .img-grid, .img-list { display: none; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        
+        .view-grid .img-grid { display: block; }
+        .view-list .img-list { display: block; }
 
         .game-content { padding: 20px; display: flex; flex-direction: column; flex: 1; }
         .game-title { font-size: 19px; font-weight: 800; margin-bottom: 16px; line-height: 1.3; color: var(--text-title); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
+        /* Специфика Списка (List) */
         .view-list .game-card { display: flex; flex-direction: row; align-items: stretch; border-left: 5px solid var(--accent-main); border-radius: 10px; }
         .view-list .game-card.demo-card { border-left-color: var(--accent-demo); }
         .view-list .game-cover { width: 160px; flex-shrink: 0; }
-        .view-list .game-cover img { height: 100%; min-height: 220px; }
+        .view-list .game-cover img { min-height: 220px; }
         
+        /* Специфика Сетки (Grid) */
         .view-grid .game-card { display: flex; flex-direction: column; border-bottom: 4px solid var(--accent-main); }
         .view-grid .game-card.demo-card { border-bottom-color: var(--accent-demo); }
         .view-grid .game-cover { width: 100%; aspect-ratio: 16/9; }
-        .view-grid .game-cover img { height: 100%; }
 
         /* Детальная сетка параметров (7 пунктов) */
         .meta-grid { display: grid; gap: 12px; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
@@ -204,14 +211,39 @@
         .badge-series { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
         .badge-demo { background: linear-gradient(135deg, #00c6ff, #0072ff); color: #fff; }
 
+        /* =========================================
+           АДАПТИВ ДЛЯ МОБИЛОК И ПЛАНШЕТОВ
+           ========================================= */
         @media (max-width: 800px) {
             .view-list .meta-grid { grid-template-columns: 1fr 1fr; }
+            .filters-row { grid-template-columns: repeat(2, 1fr); }
         }
+        
         @media (max-width: 600px) {
-            .view-list .game-card { flex-direction: column; border-left: none; border-bottom: 4px solid var(--accent-main); }
-            .view-list .game-cover { width: 100%; aspect-ratio: 16/9; }
-            .view-list .game-cover img { min-height: auto; }
-            .meta-grid { grid-template-columns: 1fr !important; }
+            /* Чиним Список на телефонах (оставляем его списком!) */
+            .view-list .game-card { flex-direction: row; border-left: 4px solid var(--accent-main); border-bottom: none; }
+            .view-list .game-card.demo-card { border-left-color: var(--accent-demo); border-bottom: none; }
+            .view-list .game-cover { width: 110px; flex-shrink: 0; align-self: stretch; }
+            .view-list .game-cover img { height: 100%; min-height: 140px; }
+            .view-list .game-content { padding: 12px; justify-content: flex-start; }
+            .view-list .game-title { font-size: 15px; margin-bottom: 10px; }
+            .view-list .meta-grid { grid-template-columns: 1fr !important; gap: 8px; }
+            .view-list .badges { gap: 4px; }
+            
+            /* Чиним Сетку на телефонах (две колонки, компактно) */
+            .games-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            .view-grid .game-card { border-bottom: 3px solid var(--accent-main); }
+            .view-grid .game-content { padding: 12px; }
+            .view-grid .game-title { font-size: 13px; margin-bottom: 8px; white-space: normal; }
+            .view-grid .meta-grid { grid-template-columns: 1fr !important; gap: 6px; margin-bottom: 12px; }
+            .view-grid .meta-label { font-size: 9px; }
+            .view-grid .meta-value { font-size: 11px; }
+            .view-grid .badge { padding: 4px 6px; font-size: 9px; }
+            
+            /* Общие фиксы для фильтров */
+            .filters-row { grid-template-columns: 1fr; }
+            .tag-filter-container { flex-direction: column; align-items: stretch; }
+            .tag-filter-container .input-wrapper { width: 100%; }
         }
     </style>
 </head>
@@ -233,7 +265,6 @@
         </div>
         
         <div class="filters-row">
-            <!-- Кастомные селекты вместо <select> -->
             <div class="custom-select" id="cs-sort" data-value="name_asc">
                 <div class="cs-selected">Сортировка: А-Я</div>
                 <div class="cs-options">
@@ -267,7 +298,6 @@
                 <div class="cs-options"></div>
             </div>
             
-            <!-- Умный фильтр тегов с чипсами -->
             <div class="tag-filter-container" id="tag-filter-container">
                 <div id="ms-chips" class="ms-chips"></div>
                 <div class="input-wrapper">
@@ -325,16 +355,6 @@
             return name.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/[^a-zа-я0-9]/gi, '');
         }
 
-        function getCoverUrl(game) {
-            if (game.SteamId) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.SteamId}/library_600x900.jpg`;
-            return ''; // Триггерим fallback
-        }
-
-        function getFallbackCover(name) {
-            // Резервный поиск обложки через Bing Images (без API ключей)
-            return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(name + ' pc game cover')}&w=300&h=450&c=7&rs=1&p=0`;
-        }
-
         function getStoreLink(game) {
             if (game.Links && game.Links.length > 0) {
                 const storeKeywords = ['steam', 'epic', 'gog', 'store', 'xbox', 'playstation', 'магазин'];
@@ -348,6 +368,7 @@
         fetch('games.json?v=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
+                // Исключаем элементы с тегом Software из общего массива
                 games = data.filter(g => !g.Tags || !g.Tags.some(t => t.toLowerCase() === 'software'));
                 populateDynamicFilters(games);
                 updateView();
@@ -493,7 +514,6 @@
                 const matchStatus = filterStatus === 'all' || g.CompletionStatus === filterStatus;
                 const matchEngine = filterEngine === 'all' || (g.Tags && g.Tags.some(t => t.includes('[Движок]') && t.replace(/.*\[Движок\]\s*/, '').trim() === filterEngine));
                 
-                // Фильтрация по нескольким тегам (AND)
                 const matchTags = selectedTags.length === 0 || selectedTags.every(st => g.Tags && g.Tags.includes(st));
 
                 return matchSearch && matchInstall && matchStatus && matchEngine && matchTags;
@@ -537,12 +557,22 @@
                     if (hltb) hltbTag = hltb.replace(/.*\[HLTB\]\s*/, '').trim();
                 }
 
-                // Сборка детальной меты из 7 пунктов
+                // Логика картинок: vSrc (Вертикальная для Списка), hSrc (Горизонтальная для Сетки)
+                const fbV = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(g.Name + ' pc game cover')}&w=300&h=450&c=7&rs=1&p=0`;
+                const fbH = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(g.Name + ' pc game header')}&w=460&h=215&c=7&rs=1&p=0`;
+                
+                const vSrc = g.SteamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.SteamId}/library_600x900.jpg` : fbV;
+                const hSrc = g.SteamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.SteamId}/header.jpg` : fbH;
+                
+                // Обработка ошибок (onerror)
+                const vErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbV.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/300x450/15161c/444444?text=NO+IMAGE'; }`;
+                const hErr = `if(!this.dataset.fb){ this.dataset.fb='1'; this.src='${fbH.replace(/'/g, "\\'")}'; } else { this.src='https://placehold.co/460x215/15161c/444444?text=NO+IMAGE'; }`;
+
                 return `
                 <div class="game-card ${isDemo ? 'demo-card' : ''}">
                     <a href="${getStoreLink(g)}" target="_blank" class="game-cover" title="Открыть в магазине">
-                        <img src="${getCoverUrl(g)}" alt="${g.Name}" loading="lazy" 
-                             onerror="if(!this.dataset.fallback){ this.dataset.fallback='true'; this.src='${getFallbackCover(g.Name)}'; } else { this.src='https://placehold.co/300x450/15161c/444444?text=NO+IMAGE'; }">
+                        <img src="${vSrc}" class="img-list" alt="${g.Name}" loading="lazy" onerror="${vErr}">
+                        <img src="${hSrc}" class="img-grid" alt="${g.Name}" loading="lazy" onerror="${hErr}">
                     </a>
 
                     <div class="game-content">
