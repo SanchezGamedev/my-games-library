@@ -18,10 +18,13 @@ HUB_DATA_FILE = "data/generated_hub.json"
 NOTIFIED_FILE = "data/notified_deals.json"
 
 def load_json(filepath):
-    if os.path.exists(filepath):
+    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
 
 def save_json(filepath, data):
     # Убедимся, что папка существует
