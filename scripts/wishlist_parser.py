@@ -5,7 +5,7 @@ def fetch_steam_wishlist(steam_id64):
     Загружает публичный вишлист Steam.
     Внимание: Профиль Steam и список желаемого должны быть открыты (Public) в настройках приватности!
     """
-    url = f"https://store.steampowered.com/wishlist/profiles/{steam_id64}/wishlistdata/"
+    url = f"https://store.steampowered.com/wishlist/id/{steam_id64}/wishlistdata/"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
