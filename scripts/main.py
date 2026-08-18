@@ -10,7 +10,7 @@ from telegram_notifier import send_telegram_push
 
 # === НАСТРОЙКИ ===
 # Вставь сюда свой SteamID64, который ты узнал
-STEAM_ID = "76561198982814522" 
+STEAM_ID = "fucking_nigga" 
 
 # Пути к файлам (предполагается, что скрипт запускается из корня репозитория)
 LIBRARY_FILE = "games.json"
